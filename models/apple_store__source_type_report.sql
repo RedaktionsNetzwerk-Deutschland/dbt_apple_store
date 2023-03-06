@@ -16,11 +16,6 @@ downloads_source_type as (
     from {{ ref('int_apple_store__downloads_source_type') }}
 ),
 
-usage_source_type as (
-
-    select *
-    from {{ ref('int_apple_store__usage_source_type') }}
-),
 
 reporting_grain as (
 
@@ -43,10 +38,10 @@ joined as (
         coalesce(downloads_source_type.first_time_downloads, 0) as first_time_downloads,
         coalesce(downloads_source_type.redownloads, 0) as redownloads,
         coalesce(downloads_source_type.total_downloads, 0) as total_downloads,
-        coalesce(usage_source_type.active_devices, 0) as active_devices,
-        coalesce(usage_source_type.deletions, 0) as deletions,
-        coalesce(usage_source_type.installations, 0) as installations,
-        coalesce(usage_source_type.sessions, 0) as sessions
+        0 as active_devices,
+        0 as deletions,
+        0 as installations,
+        0 as sessions
     from reporting_grain
     left join app 
         on reporting_grain.app_id = app.app_id
@@ -58,10 +53,6 @@ joined as (
         on reporting_grain.date_day = downloads_source_type.date_day
         and reporting_grain.app_id = downloads_source_type.app_id 
         and reporting_grain.source_type = downloads_source_type.source_type
-    left join usage_source_type
-        on reporting_grain.date_day = usage_source_type.date_day
-        and reporting_grain.app_id = usage_source_type.app_id 
-        and reporting_grain.source_type = usage_source_type.source_type
 )
 
 select * 

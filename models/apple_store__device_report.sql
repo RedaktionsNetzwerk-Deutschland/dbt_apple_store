@@ -16,12 +16,6 @@ downloads_device as (
     from {{ var('downloads_device') }}
 ),
 
-usage_device as (
-
-    select *
-    from {{ var('usage_device') }}
-),
-
 crashes_device as (
 
     select *
@@ -76,11 +70,11 @@ joined as (
         coalesce(downloads_device.first_time_downloads, 0) as first_time_downloads,
         coalesce(downloads_device.redownloads, 0) as redownloads,
         coalesce(downloads_device.total_downloads, 0) as total_downloads,
-        coalesce(usage_device.active_devices, 0) as active_devices,
-        coalesce(usage_device.active_devices_last_30_days, 0) as active_devices_last_30_days,
-        coalesce(usage_device.deletions, 0) as deletions,
-        coalesce(usage_device.installations, 0) as installations,
-        coalesce(usage_device.sessions, 0) as sessions
+        0 as active_devices,
+        0 as active_devices_last_30_days,
+        0 as deletions,
+        0 as installations,
+        0 as sessions
         {% if var('apple_store__using_subscriptions', False) %}
         ,
         coalesce(subscription_device.active_free_trial_introductory_offer_subscriptions, 0) as active_free_trial_introductory_offer_subscriptions,
@@ -118,11 +112,6 @@ joined as (
         and reporting_grain.source_type = subscription_device.source_type
         and reporting_grain.device = subscription_device.device
     {% endif %}
-    left join usage_device
-        on reporting_grain.date_day = usage_device.date_day
-        and reporting_grain.app_id = usage_device.app_id 
-        and reporting_grain.source_type = usage_device.source_type
-        and reporting_grain.device = usage_device.device
 )
 
 select * 

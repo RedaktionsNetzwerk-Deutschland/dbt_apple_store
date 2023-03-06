@@ -30,12 +30,6 @@ subscriptions as (
 ), 
 {% endif %}
 
-usage as (
-
-    select *
-    from {{ ref('int_apple_store__usage_overview') }}
-),
-
 reporting_grain as (
 
     select distinct
@@ -56,10 +50,10 @@ joined as (
         coalesce(downloads.first_time_downloads, 0) as first_time_downloads,
         coalesce(downloads.redownloads, 0) as redownloads,
         coalesce(downloads.total_downloads, 0) as total_downloads,
-        coalesce(usage.active_devices, 0) as active_devices,
-        coalesce(usage.deletions, 0) as deletions,
-        coalesce(usage.installations, 0) as installations,
-        coalesce(usage.sessions, 0) as sessions
+        0 as active_devices,
+        0 as deletions,
+        0 as installations,
+        0 as sessions
         {% if var('apple_store__using_subscriptions', False) %}
         ,
         coalesce(subscriptions.active_free_trial_introductory_offer_subscriptions, 0) as active_free_trial_introductory_offer_subscriptions,
@@ -88,10 +82,7 @@ joined as (
     left join subscriptions 
         on reporting_grain.date_day = subscriptions.date_day
         and reporting_grain.app_id = subscriptions.app_id
-    {% endif %}
-    left join usage
-        on reporting_grain.date_day = usage.date_day
-        and reporting_grain.app_id = usage.app_id        
+    {% endif %}       
 )
 
 select * 
