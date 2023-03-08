@@ -31,7 +31,7 @@ downloads_territory_summed as (
         sum(total_downloads)
     from downloads_territory
     group by date_day, app_id
-)
+),
 
 downloads_overview as (
     select *
