@@ -22,35 +22,7 @@ downloads_territory as (
     from {{ var('downloads_territory') }} 
 ),
 
-downloads_territory_summed as (
-    select
-        date_day,
-        app_id,
-        sum(first_time_downloads) as first_time_downloads,
-        sum(redownloads) as redownloads,
-        sum(total_downloads) as total_downloads
-    from downloads_territory
-    group by date_day, app_id
-),
 
-downloads_overview as (
-    select *
-    from {{ ref('int_apple_store__downloads_overview') }}
-),
-
-downloads_territory_filled as (
-    select * from downloads_territory
-    union all
-    select 
-        t.date_day, 
-        t.app_id,
-        "Unavailable" as source_type,
-        NULL as territory,
-        (o.first_time_downloads - t.first_time_downloads) as first_time_downloads,
-        (o.redownloads - t.redownloads) as redownloads,
-        (o.total_downloads - t.total_downloads) as total_downloads
-    from downloads_overview o join downloads_territory_summed t on(o.date_day = t.date_day and o.app_id = t.app_id)
-),
 
 reporting_grain as (
     select distinct
@@ -75,9 +47,9 @@ joined as (
         coalesce(app_store_territory.impressions_unique_device, 0) as impressions_unique_device,
         coalesce(app_store_territory.page_views, 0) as page_views,
         coalesce(app_store_territory.page_views_unique_device, 0) as page_views_unique_device,
-        coalesce(downloads_territory_filled.first_time_downloads, 0) as first_time_downloads,
-        coalesce(downloads_territory_filled.redownloads, 0) as redownloads,
-        coalesce(downloads_territory_filled.total_downloads, 0) as total_downloads,
+        coalesce(downloads_territory.first_time_downloads, 0) as first_time_downloads,
+        coalesce(downloads_territory.redownloads, 0) as redownloads,
+        coalesce(downloads_territory.total_downloads, 0) as total_downloads,
         CAST(0 as int64) as active_devices,
         CAST(0 as int64) as active_devices_last_30_days,
         CAST(0 as int64) as deletions,
