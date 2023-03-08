@@ -19,17 +19,40 @@ country_codes as (
 downloads_territory as (
 
     select *
-    from {{ var('downloads_territory') }}
+    from {{ var('downloads_territory') }} 
 ),
 
---usage_territory as (
---
---   select * 
---   from {{ var('usage_territory') }}
---),
+downloads_territory_summed as (
+    select
+        date_day,
+        app_id,
+        sum(first_time_downloads),
+        sum(redownloads),
+        sum(total_downloads)
+    from downloads_territory
+    group by date_day, app_id
+)
+
+downloads_overview as (
+    select *
+    from {{ ref('int_apple_store__downloads_overview') }}
+),
+
+downloads_territory_filled as (
+    select * from downloads_territory
+    union all
+    select 
+        date_day, 
+        app_id,
+        "Unavailable" as source_type,
+        NULL as territory,
+        (o.first_time_downloads - t.first_time_downloads) as first_time_downloads,
+        (o.redownloads - t.redownloads) as redownloads,
+        (o.total_downloads - t.total_downloads) as total_downloads
+    from downloads_overview o join downloads_territory_summed t on(o.date_day = t.date_day and o.app_id = t.app_id)
+),
 
 reporting_grain as (
-
     select distinct
         date_day,
         app_id,
@@ -39,7 +62,6 @@ reporting_grain as (
 ),
 
 joined as (
-
     select 
         reporting_grain.date_day,
         reporting_grain.app_id,
@@ -53,9 +75,9 @@ joined as (
         coalesce(app_store_territory.impressions_unique_device, 0) as impressions_unique_device,
         coalesce(app_store_territory.page_views, 0) as page_views,
         coalesce(app_store_territory.page_views_unique_device, 0) as page_views_unique_device,
-        coalesce(downloads_territory.first_time_downloads, 0) as first_time_downloads,
-        coalesce(downloads_territory.redownloads, 0) as redownloads,
-        coalesce(downloads_territory.total_downloads, 0) as total_downloads,
+        coalesce(downloads_territory_filled.first_time_downloads, 0) as first_time_downloads,
+        coalesce(downloads_territory_filled.redownloads, 0) as redownloads,
+        coalesce(downloads_territory_filled.total_downloads, 0) as total_downloads,
         CAST(0 as int64) as active_devices,
         CAST(0 as int64) as active_devices_last_30_days,
         CAST(0 as int64) as deletions,
@@ -69,16 +91,11 @@ joined as (
         and reporting_grain.app_id = app_store_territory.app_id 
         and reporting_grain.source_type = app_store_territory.source_type
         and reporting_grain.territory = app_store_territory.territory
-    left join downloads_territory
-        on reporting_grain.date_day = downloads_territory.date_day
-        and reporting_grain.app_id = downloads_territory.app_id 
-        and reporting_grain.source_type = downloads_territory.source_type
-        and reporting_grain.territory = downloads_territory.territory
-    --left join usage_territory
-    --   on reporting_grain.date_day = usage_territory.date_day
-    --   and reporting_grain.app_id = usage_territory.app_id 
-    --   and reporting_grain.source_type = usage_territory.source_type
-    --   and reporting_grain.territory = usage_territory.territory
+    left join downloads_territory_filled
+        on reporting_grain.date_day = downloads_territory_filled.date_day
+        and reporting_grain.app_id = downloads_territory_filled.app_id 
+        and reporting_grain.source_type = downloads_territory_filled.source_type
+        and reporting_grain.territory = downloads_territory_filled.territory
     left join country_codes as official_country_codes
         on reporting_grain.territory = official_country_codes.country_name
     left join country_codes as alternative_country_codes
