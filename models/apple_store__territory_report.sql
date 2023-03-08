@@ -63,11 +63,11 @@ joined as (
         and reporting_grain.app_id = app_store_territory.app_id 
         and reporting_grain.source_type = app_store_territory.source_type
         and reporting_grain.territory = app_store_territory.territory
-    left join downloads_territory_filled
-        on reporting_grain.date_day = downloads_territory_filled.date_day
-        and reporting_grain.app_id = downloads_territory_filled.app_id 
-        and reporting_grain.source_type = downloads_territory_filled.source_type
-        and reporting_grain.territory = downloads_territory_filled.territory
+    left join downloads_territory
+        on reporting_grain.date_day = downloads_territory.date_day
+        and reporting_grain.app_id = downloads_territory.app_id 
+        and reporting_grain.source_type = downloads_territory.source_type
+        and reporting_grain.territory = downloads_territory.territory
     left join country_codes as official_country_codes
         on reporting_grain.territory = official_country_codes.country_name
     left join country_codes as alternative_country_codes
