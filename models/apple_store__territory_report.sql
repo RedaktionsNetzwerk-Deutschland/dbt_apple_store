@@ -26,9 +26,9 @@ downloads_territory_summed as (
     select
         date_day,
         app_id,
-        sum(first_time_downloads),
-        sum(redownloads),
-        sum(total_downloads)
+        sum(first_time_downloads) as first_time_downloads,
+        sum(redownloads) as redownloads,
+        sum(total_downloads) as total_downloads
     from downloads_territory
     group by date_day, app_id
 ),
