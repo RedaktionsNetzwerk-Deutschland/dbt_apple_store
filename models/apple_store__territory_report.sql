@@ -42,8 +42,8 @@ downloads_territory_filled as (
     select * from downloads_territory
     union all
     select 
-        date_day, 
-        app_id,
+        t.date_day, 
+        t.app_id,
         "Unavailable" as source_type,
         NULL as territory,
         (o.first_time_downloads - t.first_time_downloads) as first_time_downloads,
